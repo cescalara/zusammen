@@ -117,10 +117,12 @@ class GRBProcessor(object):
 
             if self._use_bb:
 
+                ts.set_active_time_interval(f"0-{self._grb_save.duration}")
+
                 if i < 1:
 
                     ts.create_time_bins(
-                        -25, self._grb_save.duration + 20, method="bayesblocks", p0=0.05
+                        -20, self._grb_save.duration + 20, method="bayesblocks", p0=0.05
                     )
 
                     bins_to_use = ts
@@ -139,7 +141,7 @@ class GRBProcessor(object):
                         file_name=os.path.join(self._grb_save.name, name),
                         start=0.0,
                         stop=self._grb_save.duration,
-                        inner=True,
+                        # inner=True,
                         force_rsp_write=True,
                         overwrite=True,
                     )
