@@ -1,7 +1,9 @@
 functions {
+
 #include cpl.stan
 #include pgstat.stan
 #include foldinterval.stan
+
 }
 
 data {
@@ -20,8 +22,6 @@ data {
   vector[max_n_echan] ebounds_hi[N_intervals, max(N_dets)];
   vector[max_n_echan] ebounds_lo[N_intervals, max(N_dets)];
 
-
-
   vector[max_n_chan] observed_counts[N_intervals, max(N_dets)];
   vector[max_n_chan] background_counts[N_intervals, max(N_dets)];
   vector[max_n_chan] background_errors[N_intervals, max(N_dets)];
@@ -35,7 +35,6 @@ data {
 
   matrix[max_n_echan, max_n_chan] response[N_intervals, max(N_dets)];
 
-
   int mask[N_intervals, max(N_dets), max_n_chan];
   int N_channels_used[N_intervals,max(N_dets)];
 
@@ -45,7 +44,9 @@ data {
 }
 
 transformed data {
-  int grainsize = 1; // for multi threading
+
+  /* for multi-threading */
+  int grainsize = 1; 
   
   real emin = 10.;
   real emax = 1.E4;
@@ -57,11 +58,10 @@ transformed data {
 
   int all_N[N_intervals];
 
-  // precalculation of energy bounds
+  /* precalculation of energy bounds */
   for (n in 1:N_intervals) {
 
     all_N[n] = n;
-
     for (m in 1:N_dets[n]) {
 
       ebounds_half[n, m, :N_echan[n, m]] = 0.5*(ebounds_hi[n, m, :N_echan[n, m]]+ebounds_lo[n, m, :N_echan[n, m]]);
@@ -71,12 +71,13 @@ transformed data {
 
   }
 
+  
 }
 
 parameters {
 
-  real<lower=0.0, upper=10> gamma;
-  real<lower=-10, upper=-3> delta;
+  vector<lower=0.0, upper=10>[N_grbs] gamma;
+  vector<lower=-10, upper=-3>[N_grbs] delta;
   
   vector<lower=-1.5, upper=1.>[N_intervals] alpha;
 
@@ -91,12 +92,12 @@ transformed parameters {
   vector[N_intervals] log_epeak_rest_norm;
 
   /* decreasing ordered bounded by -1 and 4 */
-  ordered[N_intervals] log_epeak_r = -1 + 4*cumulative_sum(log_epeak_s[:N_intervals]);  
+  ordered[N_intervals] log_epeak_r = -1 + 4 * cumulative_sum(log_epeak_s[:N_intervals]);  
   vector[N_intervals] log_epeak = reverse(log_epeak_r);
   
   log_epeak_rest_norm = log_epeak + log_zp1 - 2;
   
-  log_energy_flux = delta + gamma * log_epeak_rest_norm;
+  log_energy_flux = delta[grb_id] + gamma[grb_id] .* log_epeak_rest_norm;
   
 }
 
@@ -109,9 +110,13 @@ model {
   
   alpha ~ normal(-1,.5);
 
-  //log_epeak ~ normal(2., 1);
-  
-  target += reduce_sum(partial_log_like, all_N, grainsize,  alpha,  log_epeak,  log_energy_flux,  observed_counts,  background_counts, background_errors,  mask, N_channels_used, exposure,  ebounds_lo,  ebounds_hi,  ebounds_add,  ebounds_half,  response,   idx_background_zero,   idx_background_nonzero,  N_bkg_zero, N_bkg_nonzero, N_dets,  N_chan,  N_echan,  max_n_chan,  emin,  emax) ;
+  target += reduce_sum(partial_log_like, all_N, grainsize,  alpha,  log_epeak,
+		       log_energy_flux,  observed_counts,  background_counts,
+		       background_errors,  mask, N_channels_used, exposure,
+		       ebounds_lo,  ebounds_hi,  ebounds_add,  ebounds_half,
+		       response,   idx_background_zero,   idx_background_nonzero,
+		       N_bkg_zero, N_bkg_nonzero, N_dets,  N_chan,  N_echan,
+		       max_n_chan,  emin,  emax);
 
 }
 
