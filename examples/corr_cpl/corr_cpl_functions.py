@@ -48,9 +48,6 @@ def corr_cpl_evolution(
     N = time.shape[0]
     M = energy.shape[0]
 
-    a = 10.0
-    b = 1e4
-
     out = np.empty((N, M))
 
     for n in range(N):
@@ -60,7 +57,7 @@ def corr_cpl_evolution(
         F = golenetskii_corr(ep, Nrest=Nrest, gamma=gamma, z=redshift)
 
         for m in range(M):
-            out[n, m] = cpl(energy[m], alpha=alpha, xp=ep, F=F, a=a, b=b)
+            out[n, m] = cpl(energy[m], alpha=alpha, xp=ep, F=F, a=emin, b=emax)
 
     return out
 
@@ -300,25 +297,22 @@ def sample_energy(
 
             vtime[0] = times[i]
 
-            if (
-                y
-                <= (
-                    folded_cpl_evolution(
-                        x,
-                        vtime,
-                        peak_flux,
-                        ep_start,
-                        ep_tau,
-                        emin,
-                        emax,
-                        alpha,
-                        redshift,
-                        Nrest,
-                        gamma,
-                        effective_area,
-                    )
-                )[0, 0]
-            ):
+            if y <= (
+                folded_cpl_evolution(
+                    x,
+                    vtime,
+                    peak_flux,
+                    ep_start,
+                    ep_tau,
+                    emin,
+                    emax,
+                    alpha,
+                    redshift,
+                    Nrest,
+                    gamma,
+                    effective_area,
+                )
+            )[0, 0]:
 
                 out[i] = x[0]
                 break
