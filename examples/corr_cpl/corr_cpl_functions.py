@@ -57,7 +57,7 @@ def corr_cpl_evolution(
         F = golenetskii_corr(ep, Nrest=Nrest, gamma=gamma, z=redshift)
 
         for m in range(M):
-            out[n, m] = cpl(energy[m], alpha=alpha, xp=ep, F=F, a=10.0, b=1e4)
+            out[n, m] = cpl(energy[m], alpha=alpha, xp=ep, F=F, a=10.0, b=1.0e4)
 
     return out
 

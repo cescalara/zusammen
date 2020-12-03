@@ -195,12 +195,16 @@ class AnalysisBuilder(object):
 
             self._survey = survey_file
 
+        self._processors = []
+
         self._config_dict = collections.OrderedDict()
         for k, v in self._survey.items():
 
             print(k)
 
             process = GRBProcessor(v.grb, use_bb=use_bb)
+
+            self._processors.append(process)
 
             self._config_dict[k] = process.yaml_params
 
