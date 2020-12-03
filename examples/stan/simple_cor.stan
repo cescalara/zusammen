@@ -76,8 +76,8 @@ transformed data {
 
 parameters {
 
-  vector<lower=0.0, upper=10>[N_grbs] gamma;
-  vector<lower=-10, upper=-3>[N_grbs] delta;
+  real<lower=0.0, upper=10> gamma;
+  real<lower=-10, upper=-3> delta;
   
   vector<lower=-1.5, upper=1.>[N_intervals] alpha;
 
@@ -97,7 +97,8 @@ transformed parameters {
   
   log_epeak_rest_norm = log_epeak + log_zp1 - 2;
   
-  log_energy_flux = delta[grb_id] + gamma[grb_id] .* log_epeak_rest_norm;
+  //log_energy_flux = delta[grb_id] + gamma[grb_id] .* log_epeak_rest_norm;
+  log_energy_flux = delta + gamma * log_epeak_rest_norm;
   
 }
 
