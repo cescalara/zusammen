@@ -121,9 +121,13 @@ class GRBProcessor(object):
 
                 if i < 1:
 
+                    #ts.create_time_bins(
+                    #    -20, self._grb_save.duration + 20, method="bayesblocks", p0=0.05
+                    #)
                     ts.create_time_bins(
-                        -20, self._grb_save.duration + 20, method="bayesblocks", p0=0.05
+                        0, self._grb_save.duration, method="bayesblocks", p0=0.05
                     )
+
 
                     bins_to_use = ts
 
