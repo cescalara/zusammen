@@ -121,13 +121,12 @@ class GRBProcessor(object):
 
                 if i < 1:
 
-                    #ts.create_time_bins(
+                    # ts.create_time_bins(
                     #    -20, self._grb_save.duration + 20, method="bayesblocks", p0=0.05
-                    #)
+                    # )
                     ts.create_time_bins(
                         0, self._grb_save.duration, method="bayesblocks", p0=0.05
                     )
-
 
                     bins_to_use = ts
 
@@ -187,7 +186,7 @@ class GRBProcessor(object):
 
 
 class AnalysisBuilder(object):
-    def __init__(self, survey_file, use_all=False, use_bb=False):
+    def __init__(self, survey_file, use_all=False, use_bb=False, select_grbs=None):
 
         if isinstance(survey_file, str):
 
@@ -199,18 +198,27 @@ class AnalysisBuilder(object):
 
             self._survey = survey_file
 
+        self._select_grbs = select_grbs
+
         self._processors = []
 
         self._config_dict = collections.OrderedDict()
+
+        grb_id = 0
+
         for k, v in self._survey.items():
 
             print(k)
 
-            process = GRBProcessor(v.grb, use_bb=use_bb)
+            if not self._select_grbs or grb_id in self._select_grbs:
 
-            self._processors.append(process)
+                process = GRBProcessor(v.grb, use_bb=use_bb)
 
-            self._config_dict[k] = process.yaml_params
+                self._processors.append(process)
+
+                self._config_dict[k] = process.yaml_params
+
+            grb_id += 1
 
     @property
     def yaml_params(self):
