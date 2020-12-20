@@ -76,11 +76,14 @@ transformed data {
 
 parameters {
 
-  vector<lower=0.0, upper=10>[N_grbs] gamma;
-  vector<lower=-10, upper=-3>[N_grbs] delta;
+  // vector<lower=0.0, upper=10>[N_grbs] gamma;
+  // vector<lower=-10, upper=-3>[N_grbs] delta;
+  vector<lower=-1.5, upper=8.5>[N_grbs] gamma_raw;
+  vector<lower=-3.5, upper=3.5>[N_grbs] delta_raw;
   
-  vector<lower=-1.5, upper=1.>[N_intervals] alpha;
-
+  // vector<lower=-1.5, upper=1.>[N_intervals] alpha;
+  vector<lower=-0.7/0.5, upper=1.8/0.5>[N_intervals] alpha_raw;
+  
   /* for log_epeak ordering */
   simplex[N_intervals+1] log_epeak_s; 
   
@@ -88,13 +91,21 @@ parameters {
 
 transformed parameters {
 
+  vector[N_grbs] gamma;
+  vector[N_grbs] delta;
+
+  vector[N_intervals] alpha;
   vector[N_intervals] log_energy_flux;
   vector[N_intervals] log_epeak_rest_norm;
-
-  /* decreasing ordered bounded by -1 and 4 */
-  ordered[N_intervals] log_epeak_r = -1 + 4 * cumulative_sum(log_epeak_s[:N_intervals]);  
-  vector[N_intervals] log_epeak = reverse(log_epeak_r);
   
+  /* decreasing ordered bounded by -1 and 4 */
+  ordered[N_intervals] log_epeak_r = -1.0 + 4.0 * cumulative_sum(log_epeak_s[:N_intervals]);  
+  vector[N_intervals] log_epeak = reverse(log_epeak_r);
+
+  gamma = 1 * gamma_raw + 1.5;
+  delta = 1 * delta_raw - 6.5;
+  alpha = 0.5 * alpha_raw - 0.8;
+    
   log_epeak_rest_norm = log_epeak + log_zp1 - 2;
   
   log_energy_flux = delta[grb_id] + gamma[grb_id] .* log_epeak_rest_norm;
@@ -104,11 +115,17 @@ transformed parameters {
 
 model {
 
-  gamma ~ normal(1.5, 2);
+  gamma_raw ~ std_normal();
 
-  delta ~ normal(-6.5, 2); 
+  delta_raw ~ std_normal();
+
+  alpha_raw ~ std_normal();
   
-  alpha ~ normal(-1,.5);
+  // gamma ~ normal(1.5, 1);
+
+  // delta ~ normal(-6.5, 1); 
+  
+  // alpha ~ normal(-0.8,.5);
 
   target += reduce_sum(partial_log_like, all_N, grainsize,  alpha,  log_epeak,
 		       log_energy_flux,  observed_counts,  background_counts,
